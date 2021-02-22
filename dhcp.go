@@ -26,7 +26,7 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithMessageType(dhcpv4.MessageTypeOffer),
 			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientIdentifier),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
-			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(86400))),
+			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
 		)
 		if err != nil {
@@ -45,7 +45,7 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientIdentifier),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
-			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(86400*time.Minute))),
+			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
 			dhcpv4.WithOption(dhcpv4.OptTFTPServerName(serverIP.String())),
 			dhcpv4.WithOption(dhcpv4.OptBootFileName(tftpBoot)),
 		)
