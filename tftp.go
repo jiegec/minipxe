@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,17 +11,21 @@ import (
 
 // readHandler is called when client starts file download from server
 func readHandler(filename string, rf io.ReaderFrom) error {
+	log.Printf("Client reading file %s", filename)
+
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		log.Printf("Got error when opening %s: %s", filename, err)
 		return err
 	}
+
 	n, err := rf.ReadFrom(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		log.Printf("Got error when reading %s: %s", filename, err)
 		return err
 	}
-	fmt.Printf("%d bytes sent\n", n)
+
+	log.Printf("%d bytes sent", n)
 	return nil
 }
 
