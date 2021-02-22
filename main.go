@@ -10,10 +10,10 @@ import (
 )
 
 func action(c *cli.Context) error {
-	dhcpServer := serveDHCP(c.String("interface"), c.String("dhcp-listen"))
+	dhcpServer := serveDHCP(c.String("dhcp-interface"), c.String("dhcp-listen"))
 	tftpServer := serveTFTP(c.String("tftp-listen"))
-	gatewayIP = net.ParseIP(c.String("gateway-ip"))
-	serverIP = net.ParseIP(c.String("server-ip"))
+	gatewayIP = net.ParseIP(c.String("dhcp-gateway-ip"))
+	serverIP = net.ParseIP(c.String("dhcp-server-ip"))
 	var clientCIDR *net.IPNet
 	var err error
 	clientIP, clientCIDR, err = net.ParseCIDR(c.String("client-cidr"))
@@ -52,22 +52,22 @@ func main() {
 				Usage: "Listen address for DNS server",
 			},
 			&cli.StringFlag{
-				Name:  "server-ip",
+				Name:  "dhcp-server-ip",
 				Value: "192.168.0.1",
 				Usage: "Announced server ip address",
 			},
 			&cli.StringFlag{
-				Name:  "gateway-ip",
+				Name:  "dhcp-gateway-ip",
 				Value: "192.168.0.1",
 				Usage: "Announced gateway ip address",
 			},
 			&cli.StringFlag{
-				Name:  "client-cidr",
+				Name:  "dhcp-client-cidr",
 				Value: "192.168.0.100/24",
 				Usage: "IP client cidr (only one is supported)",
 			},
 			&cli.StringFlag{
-				Name:  "interface",
+				Name:  "dhcp-interface",
 				Value: "minipxe-test",
 				Usage: "Network interface",
 			},
