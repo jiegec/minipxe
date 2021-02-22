@@ -4,14 +4,17 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"time"
 
 	"github.com/pin/tftp"
 )
 
-// readHandler is called when client starts file download from server
+var tftpRoot string
+
 func readHandler(filename string, rf io.ReaderFrom) error {
 	log.Printf("Client reading file %s", filename)
+	filename = path.Join(tftpRoot, filename)
 
 	file, err := os.Open(filename)
 	if err != nil {

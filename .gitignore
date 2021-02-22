@@ -1,2 +1,4 @@
 .vscode/
 minipxe
+vmlinuz
+initrd.img

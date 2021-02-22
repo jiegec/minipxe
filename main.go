@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"os"
 	"os/signal"
 
@@ -9,8 +10,19 @@ import (
 )
 
 func action(c *cli.Context) error {
-	dnsServer := serveDNS(c.String("dns-listen"))
+	dhcpServer := serveDHCP(c.String("interface"), c.String("dhcp-listen"))
 	tftpServer := serveTFTP(c.String("tftp-listen"))
+	gatewayIP = net.ParseIP(c.String("gateway-ip"))
+	serverIP = net.ParseIP(c.String("server-ip"))
+	var clientCIDR *net.IPNet
+	var err error
+	clientIP, clientCIDR, err = net.ParseCIDR(c.String("client-cidr"))
+	if err != nil {
+		log.Fatal("Bad client cidr: ", err)
+	}
+	subnetMask = clientCIDR.Mask
+	tftpRoot = c.String("tftp-root")
+	tftpBoot = c.String("tftp-boot")
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
@@ -20,7 +32,7 @@ func action(c *cli.Context) error {
 		select {
 		case sig := <-signalChannel:
 			log.Printf("Received signal %s, quitting", sig)
-			dnsServer.Close()
+			dhcpServer.Close()
 			tftpServer.Shutdown()
 			exit = true
 		}
@@ -35,14 +47,44 @@ func main() {
 		Usage: "A minimal DNS and TFTP server for PXE",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "dns-listen",
-				Value: ":53",
+				Name:  "dhcp-listen",
+				Value: ":67",
 				Usage: "Listen address for DNS server",
+			},
+			&cli.StringFlag{
+				Name:  "server-ip",
+				Value: "192.168.0.1",
+				Usage: "Announced server ip address",
+			},
+			&cli.StringFlag{
+				Name:  "gateway-ip",
+				Value: "192.168.0.1",
+				Usage: "Announced gateway ip address",
+			},
+			&cli.StringFlag{
+				Name:  "client-cidr",
+				Value: "192.168.0.100/24",
+				Usage: "IP client cidr (only one is supported)",
+			},
+			&cli.StringFlag{
+				Name:  "interface",
+				Value: "minipxe-test",
+				Usage: "Network interface",
 			},
 			&cli.StringFlag{
 				Name:  "tftp-listen",
 				Value: ":69",
 				Usage: "Listen address for TFTP server",
+			},
+			&cli.StringFlag{
+				Name:  "tftp-root",
+				Value: "root",
+				Usage: "Directory root to serve TFTP contents",
+			},
+			&cli.StringFlag{
+				Name:  "tftp-boot",
+				Value: "pxelinux.0",
+				Usage: "TFTP boot file",
 			},
 		},
 		Action: action,
