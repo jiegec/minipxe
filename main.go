@@ -16,7 +16,7 @@ func action(c *cli.Context) error {
 	serverIP = net.ParseIP(c.String("dhcp-server-ip"))
 	var clientCIDR *net.IPNet
 	var err error
-	clientIP, clientCIDR, err = net.ParseCIDR(c.String("client-cidr"))
+	clientIP, clientCIDR, err = net.ParseCIDR(c.String("dhcp-client-cidr"))
 	if err != nil {
 		log.Fatal("Bad client cidr: ", err)
 	}
