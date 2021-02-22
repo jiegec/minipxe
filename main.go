@@ -2,26 +2,26 @@ package main
 
 import (
 	"log"
-	"net"
-
-	"github.com/insomniacslk/dhcp/dhcpv4"
-	"github.com/insomniacslk/dhcp/dhcpv4/server4"
+	"os"
+	"os/signal"
 )
 
-func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
-	log.Print(m.Summary())
-}
-
 func main() {
-	addr := &net.UDPAddr{
-		IP:   net.ParseIP("127.0.0.1"),
-		Port: 53,
-	}
-	server, err := server4.NewServer("", addr, handler)
-	if err != nil {
-		log.Fatal("Failed to start server: ", err)
+	dnsServer := serveDNS("127.0.0.1:53")
+	tftpServer := serveTFTP("127.0.0.1:69")
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
+
+	exit := false
+	for !exit {
+		select {
+		case sig := <-signalChannel:
+			log.Printf("Received signal %s, quitting", sig)
+			dnsServer.Close()
+			tftpServer.Shutdown()
+			exit = true
+		}
 	}
 
-	log.Println("Starting dhcp server")
-	server.Serve()
 }
