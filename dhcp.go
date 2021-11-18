@@ -14,6 +14,7 @@ var serverIP net.IP
 var clientIP net.IP
 var subnetMask net.IPMask
 var tftpBoot string
+var ipxeConfig string
 
 func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 	log.Printf("Received packet local %s peer %s: %s", conn.LocalAddr(), peer, m.Summary())
@@ -36,6 +37,11 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 		log.Print("Sent: ", reply.Summary())
 		conn.WriteTo(reply.ToBytes(), peer)
 	} else if m.MessageType() == dhcpv4.MessageTypeRequest {
+		var bootFileName = tftpBoot
+		if len(m.UserClass()) > 0 && m.UserClass()[0] == "iPXE" {
+			bootFileName = ipxeConfig
+		}
+
 		reply, err := dhcpv4.New(
 			dhcpv4.WithReply(m),
 			dhcpv4.WithGatewayIP(gatewayIP),
@@ -47,7 +53,7 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
 			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
 			dhcpv4.WithOption(dhcpv4.OptTFTPServerName(serverIP.String())),
-			dhcpv4.WithOption(dhcpv4.OptBootFileName(tftpBoot)),
+			dhcpv4.WithOption(dhcpv4.OptBootFileName(bootFileName)),
 		)
 		if err != nil {
 			log.Print("Got error when constructing reply: ", err)

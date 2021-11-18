@@ -23,6 +23,7 @@ func action(c *cli.Context) error {
 	subnetMask = clientCIDR.Mask
 	tftpRoot = c.String("tftp-root")
 	tftpBoot = c.String("tftp-boot")
+	ipxeConfig = c.String("ipxe-config")
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
@@ -78,13 +79,18 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:  "tftp-root",
-				Value: "root",
+				Value: "root-ipxe",
 				Usage: "Directory root to serve TFTP contents",
 			},
 			&cli.StringFlag{
 				Name:  "tftp-boot",
-				Value: "pxelinux.0",
+				Value: "ipxe.efi",
 				Usage: "TFTP boot file",
+			},
+			&cli.StringFlag{
+				Name:  "ipxe-config",
+				Value: "tftp://192.168.0.1/ipxe.cfg",
+				Usage: "iPXE config path",
 			},
 		},
 		Action: action,
