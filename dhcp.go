@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/insomniacslk/dhcp/dhcpv4"
@@ -18,7 +19,20 @@ var ipxeConfig string
 
 func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 	log.Printf("Received packet local %s peer %s: %s", conn.LocalAddr(), peer, m.Summary())
+
+	var bootFileName = tftpBoot
+	if len(m.UserClass()) > 0 && m.UserClass()[0] == "iPXE" {
+		bootFileName = ipxeConfig
+	}
+
+	class := m.ClassIdentifier()
+	if !strings.Contains(class, "PXEClient") {
+		log.Print("Ignoring non PXEClient")
+		return
+	}
+
 	if m.MessageType() == dhcpv4.MessageTypeDiscover {
+
 		reply, err := dhcpv4.New(
 			dhcpv4.WithReply(m),
 			dhcpv4.WithGatewayIP(gatewayIP),
@@ -26,8 +40,10 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithYourIP(clientIP),
 			dhcpv4.WithMessageType(dhcpv4.MessageTypeOffer),
 			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientIdentifier),
+			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientMachineIdentifier),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
 			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
+			dhcpv4.WithOption(dhcpv4.OptBootFileName(bootFileName)),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
 		)
 		if err != nil {
@@ -37,11 +53,6 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 		log.Print("Sent: ", reply.Summary())
 		conn.WriteTo(reply.ToBytes(), peer)
 	} else if m.MessageType() == dhcpv4.MessageTypeRequest {
-		var bootFileName = tftpBoot
-		if len(m.UserClass()) > 0 && m.UserClass()[0] == "iPXE" {
-			bootFileName = ipxeConfig
-		}
-
 		reply, err := dhcpv4.New(
 			dhcpv4.WithReply(m),
 			dhcpv4.WithGatewayIP(gatewayIP),
@@ -49,6 +60,7 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithYourIP(clientIP),
 			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
 			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientIdentifier),
+			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientMachineIdentifier),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
 			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
