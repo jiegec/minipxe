@@ -48,6 +48,7 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithOption(dhcpv4.OptDomainName("lan")),
 		)
 		reply.BootFileName = bootFileName
+		reply.ServerHostName = serverIP.String()
 
 		if err != nil {
 			log.Print("Got error when constructing reply: ", err)
@@ -76,6 +77,9 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithOption(dhcpv4.OptDNS(net.IPv4(114, 114, 114, 114))),
 			dhcpv4.WithOption(dhcpv4.OptDomainName("lan")),
 		)
+		reply.BootFileName = bootFileName
+		reply.ServerHostName = serverIP.String()
+
 		if err != nil {
 			log.Print("Got error when constructing reply: ", err)
 			return
