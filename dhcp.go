@@ -32,13 +32,13 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 	}
 
 	if m.MessageType() == dhcpv4.MessageTypeDiscover {
-
 		reply, err := dhcpv4.New(
 			dhcpv4.WithReply(m),
 			dhcpv4.WithGatewayIP(gatewayIP),
 			dhcpv4.WithServerIP(serverIP),
 			dhcpv4.WithYourIP(clientIP),
 			dhcpv4.WithMessageType(dhcpv4.MessageTypeOffer),
+			dhcpv4.WithOption(dhcpv4.OptServerIdentifier(serverIP)),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
 			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
@@ -47,6 +47,8 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithOption(dhcpv4.OptDNS(net.IPv4(114, 114, 114, 114))),
 			dhcpv4.WithOption(dhcpv4.OptDomainName("lan")),
 		)
+		reply.BootFileName = bootFileName
+
 		if err != nil {
 			log.Print("Got error when constructing reply: ", err)
 			return
@@ -54,14 +56,18 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 		log.Print("Sent: ", reply.Summary())
 		conn.WriteTo(reply.ToBytes(), peer)
 	} else if m.MessageType() == dhcpv4.MessageTypeRequest {
+		if !m.ServerIdentifier().Equal(serverIP) {
+			log.Print("Ignoring: ", m.ServerIdentifier(), " != ", serverIP)
+			return
+		}
+
 		reply, err := dhcpv4.New(
 			dhcpv4.WithReply(m),
 			dhcpv4.WithGatewayIP(gatewayIP),
 			dhcpv4.WithServerIP(serverIP),
 			dhcpv4.WithYourIP(clientIP),
 			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
-			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientIdentifier),
-			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientMachineIdentifier),
+			dhcpv4.WithOption(dhcpv4.OptServerIdentifier(serverIP)),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
 			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
