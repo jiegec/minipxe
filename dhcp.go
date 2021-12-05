@@ -39,12 +39,13 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 			dhcpv4.WithServerIP(serverIP),
 			dhcpv4.WithYourIP(clientIP),
 			dhcpv4.WithMessageType(dhcpv4.MessageTypeOffer),
-			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientIdentifier),
-			dhcpv4.WithOptionCopied(m, dhcpv4.OptionClientMachineIdentifier),
 			dhcpv4.WithOption(dhcpv4.OptSubnetMask(subnetMask)),
-			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
-			dhcpv4.WithOption(dhcpv4.OptBootFileName(bootFileName)),
 			dhcpv4.WithOption(dhcpv4.OptRouter(gatewayIP)),
+			dhcpv4.WithOption(dhcpv4.OptIPAddressLeaseTime(time.Duration(24*time.Hour))),
+			dhcpv4.WithOption(dhcpv4.OptTFTPServerName(serverIP.String())),
+			dhcpv4.WithOption(dhcpv4.OptBootFileName(bootFileName)),
+			dhcpv4.WithOption(dhcpv4.OptDNS(net.IPv4(114, 114, 114, 114))),
+			dhcpv4.WithOption(dhcpv4.OptDomainName("lan")),
 		)
 		if err != nil {
 			log.Print("Got error when constructing reply: ", err)
