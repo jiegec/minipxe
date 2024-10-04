@@ -33,8 +33,8 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 	}
 
 	class := m.ClassIdentifier()
-	if !allowed && !strings.Contains(class, "PXEClient") && class != "Linux ipconfig" {
-		log.Print("Ignoring non PXEClient/Linux ipconfig")
+	if !allowed && !strings.Contains(class, "PXEClient") && class != "Linux ipconfig" && !strings.Contains(class, "anaconda-Linux") {
+		log.Print("Ignoring non PXEClient/Linux ipconfig/anaconda-Linux")
 		return
 	}
 
