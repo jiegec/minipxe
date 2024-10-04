@@ -25,8 +25,15 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 		bootFileName = ipxeConfig
 	}
 
+	var allowed = false
+
+	hostname := m.HostName()
+	if hostname == "archiso" {
+		allowed = true
+	}
+
 	class := m.ClassIdentifier()
-	if !strings.Contains(class, "PXEClient") && !strings.Contains(class, "Linux ipconfig") {
+	if !allowed && !strings.Contains(class, "PXEClient") && class != "Linux ipconfig" {
 		log.Print("Ignoring non PXEClient/Linux ipconfig")
 		return
 	}
