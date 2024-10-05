@@ -2,3 +2,4 @@
 minipxe
 vmlinuz
 initrd.img
+*.img
