@@ -18,6 +18,7 @@ var subnetMask net.IPMask
 var tftpBoot string
 var tftpBootAMD64EFI string
 var tftpBootARM64EFI string
+var tftpBootRISCV64EFI string
 var ipxeConfig string
 
 func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
@@ -28,6 +29,8 @@ func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 		bootFileName = tftpBootAMD64EFI
 	} else if iana.Archs.Contains(m.ClientArch(), iana.EFI_ARM64) {
 		bootFileName = tftpBootARM64EFI
+	} else if iana.Archs.Contains(m.ClientArch(), iana.EFI_RISCV64) {
+		bootFileName = tftpBootRISCV64EFI
 	}
 
 	if len(m.UserClass()) > 0 && m.UserClass()[0] == "iPXE" {
