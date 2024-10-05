@@ -8,6 +8,7 @@ import (
 
 	"github.com/insomniacslk/dhcp/dhcpv4"
 	"github.com/insomniacslk/dhcp/dhcpv4/server4"
+	"github.com/insomniacslk/dhcp/iana"
 )
 
 var gatewayIP net.IP
@@ -15,12 +16,20 @@ var serverIP net.IP
 var clientIP net.IP
 var subnetMask net.IPMask
 var tftpBoot string
+var tftpBootAMD64EFI string
+var tftpBootARM64EFI string
 var ipxeConfig string
 
 func handler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
 	log.Printf("Received packet local %s peer %s: %s", conn.LocalAddr(), peer, m.Summary())
 
 	var bootFileName = tftpBoot
+	if iana.Archs.Contains(m.ClientArch(), iana.EFI_X86_64) {
+		bootFileName = tftpBootAMD64EFI
+	} else if iana.Archs.Contains(m.ClientArch(), iana.EFI_ARM64) {
+		bootFileName = tftpBootARM64EFI
+	}
+
 	if len(m.UserClass()) > 0 && m.UserClass()[0] == "iPXE" {
 		bootFileName = ipxeConfig
 	}

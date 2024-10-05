@@ -23,6 +23,8 @@ func action(c *cli.Context) error {
 	subnetMask = clientCIDR.Mask
 	tftpRoot = c.String("tftp-root")
 	tftpBoot = c.String("tftp-boot")
+	tftpBootAMD64EFI = c.String("tftp-boot-amd64-efi")
+	tftpBootARM64EFI = c.String("tftp-boot-arm64-efi")
 	ipxeConfig = c.String("ipxe-config")
 
 	signalChannel := make(chan os.Signal, 1)
@@ -85,7 +87,17 @@ func main() {
 			&cli.StringFlag{
 				Name:  "tftp-boot",
 				Value: "ipxe.efi",
-				Usage: "TFTP boot file",
+				Usage: "Fallback TFTP boot file",
+			},
+			&cli.StringFlag{
+				Name:  "tftp-boot-amd64-efi",
+				Value: "bin-x86_64-efi/ipxe.efi",
+				Usage: "TFTP boot file for AMD64 EFI",
+			},
+			&cli.StringFlag{
+				Name:  "tftp-boot-arm64-efi",
+				Value: "bin-arm64-efi/ipxe.efi",
+				Usage: "TFTP boot file for ARM64 EFI",
 			},
 			&cli.StringFlag{
 				Name:  "ipxe-config",
